@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crop Disease Testing</title>
+  </head>
+  <body>
+    <label for="crop_type">Crop Type</label>
+    <select name="crop_type" id="crop_type" required>
+      <option value="tomato">Tomato</option>
+      <option value="wheat">Wheat</option>
+      <option value="rice">Rice</option>
+    </select>
+    <br />
+    <label for="img_file">Upload Image</label>
+    <input id="img_file" type="file" required />
+    <br />
+    <button id="predict">predict</button>
+
+    <script>
+      const button = document.querySelector("#predict");
+      button.addEventListener("click", async () => {
+        const fileInput = document.querySelector("#img_file");
+        const cropType = document.querySelector("#crop_type").value;
+        const imgFile = fileInput.files[0];
+        if (!imgFile) {
+          alert("Please select an image first!");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64Image = reader.result;
+          const response = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              image: base64Image,
+              crop_type: cropType,
+            }),
+          });
+
+          const data = await response.json();
+          console.log("Server response:", data);
+        };
+        reader.readAsDataURL(imgFile);
+      });
+    </script>
+  </body>
+</html>
