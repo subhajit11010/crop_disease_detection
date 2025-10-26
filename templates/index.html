@@ -17,9 +17,10 @@
     <input id="img_file" type="file" required />
     <br />
     <button id="predict">predict</button>
-
+    <p id="output">Predicted: </p>
     <script>
       const button = document.querySelector("#predict");
+      let output = document.querySelector("#output");
       button.addEventListener("click", async () => {
         const fileInput = document.querySelector("#img_file");
         const cropType = document.querySelector("#crop_type").value;
@@ -42,6 +43,16 @@
 
           const data = await response.json();
           console.log("Server response:", data);
+          if("status" in data && data["status"] == "ok"){
+            output.textContent = `Predicted: ${data["predictions"]}`
+          }
+          else if(data["status"].startsWith("no")){
+            output.textContent = "Healthy"
+          }
+          else{
+            output.textContent = `Error: ${data["error"]}`
+          }
+
         };
         reader.readAsDataURL(imgFile);
       });

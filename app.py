@@ -25,7 +25,7 @@ def classify_crop():
     global crop_type, img_arr
     data = request.get_json()
     if not data or "image" not in data:
-        return jsonify({"error": "No Image Found"}), 400
+        return jsonify({"error": "No Image Found"})
     
     crop_type = data["crop_type"]
     image_data = data["image"].split(',')[-1]
