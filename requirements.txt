@@ -2,3 +2,6 @@ flask
 pillow
 numpy
 inference-sdk
+pandas
+scikit-learn
+joblib

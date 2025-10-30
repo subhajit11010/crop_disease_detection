@@ -2,14 +2,20 @@ from flask import Flask, request, jsonify, render_template
 from PIL import Image
 import base64, io
 import numpy as np
+import pandas as pd
 from inference_sdk import InferenceHTTPClient
-
+import joblib
+import sklearn
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 crop_type = None
 img_arr = None
+num_cols = ["N", "P", "K", "Temperature", "Humidity", "Wind_Speed"]
+expected_cols = ["Temperature","Humidity", "Wind_Speed", "N","P","K", "Crop_Type_Rice", "Crop_Type_Tomato", "Crop_Type_Wheat"]
+knn = joblib.load("model.pkl")
+scaler = joblib.load("scaler.pkl")
 CLIENT = InferenceHTTPClient(
     api_url="https://serverless.roboflow.com",
     api_key="QFsh3LL5uFtkMHKrLf7V"
@@ -53,6 +59,27 @@ def predict_disease(img_arr, crop_type):
         return jsonify({"status": "ok", "predictions": predictions})
     else:
         return jsonify({"status": "no object detected!"})
+    
+@app.route("/soil_quality", methods=["POST"])
+def predict_soil_q():
+    data = request.get_json()
+    npk_json = {
+        "Temperature": float(data["Temperature"]),
+        "Humidity": float(data["Humidity"]),
+        "Wind_Speed": float(data["Wind_Speed"]),
+        "N": float(data["Nitrogen"]),
+        "P": float(data["Phosphorous"]),
+        "K": float(data["Potassium"]),
+        "Crop_Type": data["Crop_Type"]
+    }
+    df = pd.DataFrame([npk_json])
+    df = pd.get_dummies(df, columns=["Crop_Type"], dtype=int)
+    df = df.reindex(columns=expected_cols, fill_value=0)
+    df[num_cols] = scaler.transform(df[num_cols])
+    prediction = knn.predict(df)
+    print(prediction[0])
+    return jsonify({"soil_quality": prediction[0]})
+    
 
 
 if __name__ == "__main__":
