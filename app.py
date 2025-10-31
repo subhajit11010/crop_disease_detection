@@ -76,6 +76,7 @@ def predict_soil_q():
     df = pd.get_dummies(df, columns=["Crop_Type"], dtype=int)
     df = df.reindex(columns=expected_cols, fill_value=0)
     df[num_cols] = scaler.transform(df[num_cols])
+    print(df)
     prediction = knn.predict(df)
     print(prediction[0])
     return jsonify({"soil_quality": prediction[0]})
